@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="마실">
+<meta name="theme-color" content="#ffffff"><meta name="format-detection" content="telephone=no">
+<title>마실 로그인 프로토타입</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Montserrat:wght@800&display=swap" rel="stylesheet">
+<style>
+/* Layout: 390x844 폰 프레임을 중앙에 두고, 넓은 화면에서는 왼쪽에 화면 바로가기 패널을 둔다. 앱 UI는 첨부 시안의 좌표를 그대로 따른다. */
+:root{
+  --stage:#E9EAEE; --panel-ink:#1B1B20; --panel-sub:#6A6A72; --panel-line:#D5D7DD;
+  --ink:#000; --sub:#707070; --ph:#9B9BA1; --line:#EAEAEA; --field:#F5F5F5;
+  --disabled:#D3D4DA; --yellow:#FCEB4B; --yellow-line:#FBE44D; --cream:#FFF6DC;
+  --kakao:#FEE500; --naver:#03C75A; --red:#FF4B5C; --dim:rgba(0,0,0,.7);
+  --font:"Pretendard","Noto Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --sbh:54px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--stage);color:var(--ink);font-family:var(--font);padding-inline:16px;letter-spacing:-.01em;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input{font:inherit;color:inherit}
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding-block:16px}
+
+/* 프로토타입 패널 */
+.panel{width:260px;flex:none;color:var(--panel-ink)}
+.panel h1{font-size:20px;line-height:28px;margin:0 0 6px;font-weight:700}
+.panel p{margin:0 0 20px;font-size:13px;line-height:20px;color:var(--panel-sub)}
+.panel h3{margin:0 0 8px;font-size:12px;letter-spacing:.06em;color:var(--panel-sub);font-weight:500}
+.panel ul{list-style:none;margin:0 0 20px;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--panel-line)}
+.panel li button{width:100%;text-align:left;padding:10px 2px;border-bottom:1px solid var(--panel-line);font-size:14px;display:flex;justify-content:space-between}
+.panel li button:hover{background:rgba(0,0,0,.04)}
+.panel li button span{color:var(--panel-sub);font-size:12px}
+.panel .reset{padding:10px 16px;border:1px solid var(--panel-ink);border-radius:20px;font-size:13px;font-weight:500}
+.panel .tip{font-size:12px;line-height:19px;color:var(--panel-sub);margin:20px 0 0}
+@media (max-width:919px){.panel{display:none}}
+
+/* 디바이스 */
+.wrap{flex:none}
+.device{position:relative;width:390px;height:844px;background:#fff;border-radius:44px;overflow:hidden;transform-origin:0 0;box-shadow:0 0 0 1px rgba(0,0,0,.1),0 24px 56px rgba(0,0,0,.18);isolation:isolate}
+.status{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:10px 30px 0 52px;z-index:20;pointer-events:none}
+.status b{font-weight:500;font-size:16px;letter-spacing:0}
+.status .ic-r{display:flex;align-items:center;gap:6px}
+
+.screen{position:absolute;inset:0;background:#fff;transform:translateX(100%);will-change:transform}
+.ready .screen{transition:transform .34s cubic-bezier(.3,.8,.3,1)}
+.screen.active{transform:none}
+.screen.past{transform:translateX(-25%)}
+.nav{position:absolute;top:calc(var(--sbh) + 1px);left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center}
+.nav h1{margin:0;font-size:16px;line-height:22px;font-weight:700}
+.nav .bk,.nav .x{position:absolute;top:0;width:44px;height:44px;display:grid;place-items:center}
+.nav .bk{left:3px}
+.nav .x{right:3px}
+.c{position:absolute;top:calc(var(--sbh) + 45px);left:0;right:0;padding:0 20px}
+.h{margin:0;font-size:20px;line-height:28px;font-weight:700;letter-spacing:-.02em}
+.sub{margin:12px 0 0;font-size:14px;line-height:25px;color:var(--sub)}
+.lbl{display:block;font-size:16px;line-height:20px;font-weight:700;margin-bottom:14px}
+.field{display:block;width:100%;height:44px;border:0;border-radius:8px;background:var(--field);padding:0 20px;font-size:15px;text-align:left;outline:none}
+.field::placeholder{color:var(--ph);font-size:14px;opacity:1}
+.fieldbtn{display:flex;align-items:center}
+.fieldbtn .ph{color:var(--ph);font-size:14px}
+.fieldbtn .tx{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inwrap{position:relative}
+.timer{position:absolute;right:20px;top:0;height:44px;display:flex;align-items:center;font-size:14px;color:var(--red);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid #000;outline-offset:2px}
+.field:focus-visible{outline-offset:-2px}
+
+.btn{display:flex;align-items:center;justify-content:center;width:100%;height:50px;border-radius:25px;font-size:16px;font-weight:700;background:var(--disabled);color:#000}
+.btn.on{background:#000;color:#fff}
+.cta{position:absolute;left:20px;right:20px;bottom:21px;height:66px;border-radius:33px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;background:var(--disabled);color:#000}
+.cta.on{background:var(--yellow)}
+.btn[aria-disabled=true],.cta[aria-disabled=true]{cursor:default}
+
+.keep{display:flex;align-items:center;gap:10px;height:20px;margin-top:22px;font-size:14px}
+.keep .ic{width:20px;height:20px}
+.sns{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 2px;margin-top:22px}
+.sns button{height:45px;border-radius:23px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:500}
+.sns .kk{background:var(--kakao);color:#000}
+.sns .nv{background:var(--naver);color:#fff}
+.divider{height:1px;background:var(--line)}
+
+.ic circle{fill:none;stroke:#000;stroke-width:1.5}
+.ic path{fill:none;stroke:#000;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.on>.ic circle,.on .ic circle{fill:var(--yellow);stroke:none}
+.steps{display:flex;gap:7px;margin-top:28px;height:22px}
+.steps i{width:22px;height:22px;border-radius:50%;background:var(--disabled);color:#8A8A93;font-style:normal;font-size:11px;font-weight:500;display:grid;place-items:center}
+.steps i.on{background:#000;color:#fff}
+.gender{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gender button{height:44px;border-radius:22px;border:1px solid #000;background:#fff;font-size:15px}
+.gender button.on{background:#000;color:#fff}
+.resend{display:block;margin:23px auto 0;height:27px;padding:0 12px;border:1px solid #000;border-radius:14px;font-size:12px;background:#fff}
+.ex{margin-top:23px;font-size:14px;line-height:20px}
+.ex dt{font-size:15px;line-height:20px;margin-top:18px}
+.ex dt+dd{margin:5px 0 0;font-size:14px;line-height:20px;color:var(--sub)}
+.ex dt~dt{margin-top:13px}
+.ex dd{margin:0}
+
+.agree{display:flex;align-items:center;height:44px;border:1px solid #000;border-radius:8px;background:#fff}
+.agree.on{background:var(--cream);border-color:var(--yellow-line)}
+.agree .m{flex:1;height:100%;display:flex;align-items:center;gap:10px;padding-left:9px;font-size:14px;text-align:left}
+.agree .m .ic{width:22px;height:22px;flex:none}
+.agree .cv{width:40px;height:100%;display:grid;place-items:center}
+.alist{display:flex;flex-direction:column;gap:11px}
+.logo{margin:0;font-family:"Montserrat",var(--font);font-weight:800;font-size:23px;line-height:20px;color:var(--naver);letter-spacing:-.02em}
+.nvdesc{margin:19px 0 0;font-size:13.5px;line-height:25px;color:var(--sub);white-space:nowrap}
+
+/* 주소 시트 */
+.dim{position:absolute;inset:0;background:var(--dim);opacity:0;pointer-events:none;z-index:30;transition:opacity .25s}
+.dim.open{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;top:calc(var(--sbh) + 45px);bottom:0;background:#fff;border-radius:40px 40px 0 0;z-index:31;transform:translateY(105%);transition:transform .34s cubic-bezier(.3,.8,.3,1);padding:32px 20px 0}
+.sheet.open{transform:none}
+.sheet h2{margin:0 0 14px;font-size:16px;line-height:20px;font-weight:700}
+.sdiv{height:1px;background:var(--line);margin-top:20px}
+.res{display:block;width:100%;text-align:left;padding:22px 0 21px}
+.res+.res{border-top:1px solid var(--line)}
+.res.sel{background:var(--field);margin:0 -20px;width:calc(100% + 40px);padding-inline:20px}
+.res b{display:block;font-size:15px;line-height:22px;font-weight:500}
+.res small{display:block;font-size:14px;line-height:20px;color:var(--sub);margin-top:2px}
+.none{margin:22px 0 0;font-size:14px;color:var(--sub)}
+.kbd{position:absolute;left:0;right:0;bottom:0;height:322px;background:#E3E5EA;border-radius:30px 30px 44px 44px;z-index:40;transform:translateY(105%);transition:transform .28s cubic-bezier(.3,.8,.3,1);display:flex;flex-direction:column;padding-bottom:0}
+.kbd.open{transform:none}
+.kbd .sg{display:grid;grid-template-columns:1fr 1fr 1fr;height:44px;align-items:center;text-align:center;font-size:15px}
+.kbd .sg span+span{border-left:1px solid #C9CCD3}
+.kbd .rows{display:flex;flex-direction:column;gap:12px;padding:8px 3px 0}
+.kbd .row{display:flex;gap:6px}
+.kbd .row.i2{padding:0 17px}
+.kbd .k{flex:1;height:43px;border-radius:5px;background:#FDFDFE;box-shadow:0 1px 0 rgba(0,0,0,.28);display:grid;place-items:center;font-size:22px;color:#000;min-width:0}
+.kbd .k.w{flex:1.45}
+.kbd .k.sp{flex:6}
+.kbd .k.fn{flex:2.2;font-size:16px}
+.kbd .k:active{background:#C9CCD3}
+.kbd .bot{margin-top:auto;height:56px;display:flex;justify-content:space-between;align-items:flex-start;padding:8px 28px 0}
+.toast{position:absolute;left:50%;bottom:118px;transform:translate(-50%,8px);background:rgba(17,17,17,.9);color:#fff;font-size:13px;line-height:20px;padding:10px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:60;white-space:nowrap;max-width:350px}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+/* 실제 폰: 틀과 가짜 상태바를 없애고 화면 전체를 채운다 */
+html.phone-h{overflow:hidden;overscroll-behavior:none}
+body.phone{--sbh:8px;padding:0;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;background:#fff;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body.phone .stage{display:block;min-height:0;padding:0}
+body.phone .wrap{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;bottom:0;width:auto!important;height:auto!important;overflow:hidden;background:#fff}
+body.phone .device{border-radius:0;box-shadow:none}
+body.phone .status{display:none}
+body.phone input{font-size:16px;-webkit-user-select:text;user-select:text}
+body.phone .toast{bottom:104px}
+@media (prefers-reduced-motion:reduce){.ready .screen,.sheet,.dim,.kbd,.toast{transition:none}}
+html,body{margin:0}</style></head><body>
+
+<div class="stage">
+  <aside class="panel">
+    <h1>마실 프로토타입</h1>
+    <p>로그인과 회원가입 흐름을 실제 앱처럼 눌러 볼 수 있어요. 화면 안의 버튼과 입력창을 직접 사용해 보세요.</p>
+    <h3>화면 바로가기</h3>
+    <ul id="jumps">
+      <li><button data-j="login">로그인 <span>기본</span></button></li>
+      <li><button data-j="terms">이용약관 <span>가입 시작</span></button></li>
+      <li><button data-j="s1">정보 입력 <span>1 / 3</span></button></li>
+      <li><button data-j="s2">휴대폰 인증 <span>2 / 3</span></button></li>
+      <li><button data-j="s3">주소 입력 <span>3 / 3</span></button></li>
+      <li><button data-j="sheet">주소 검색 <span>시트</span></button></li>
+      <li><button data-j="ntrm">네이버 약관 <span>SNS 로그인</span></button></li>
+    </ul>
+    <button class="reset" id="reset">처음부터 다시</button>
+    <p class="tip">시연 팁: 인증번호는 아무 숫자 6자리나 입력하면 되고, 주소 검색은 “세동길 25”를 입력해 보세요.</p>
+  </aside>
+
+  <div class="wrap" id="wrap">
+    <div class="device" id="device">
+      <div class="status" aria-hidden="true">
+        <b>9:41</b>
+        <div class="ic-r">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="#000"><rect x="0" y="8" width="3" height="4" rx=".8"/><rect x="5" y="5.5" width="3" height="6.5" rx=".8"/><rect x="10" y="3" width="3" height="9" rx=".8"/><rect x="15" y="0" width="3" height="12" rx=".8"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"><path d="M1.3 4.2a10.5 10.5 0 0 1 14.4 0"/><path d="M3.9 7a6.8 6.8 0 0 1 9.2 0"/><path d="M6.4 9.6a3.2 3.2 0 0 1 4.2 0"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#000" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#000"/><path d="M25 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" fill="#000" opacity=".5"/></svg>
+        </div>
+      </div>
+
+      <!-- 로그인 -->
+      <section class="screen" id="s-login" aria-label="로그인">
+        <header class="nav"><h1>로그인</h1>
+          <button class="x" id="loginX" aria-label="닫기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button></header>
+        <div class="c">
+          <h2 class="h" style="margin-top:47px">마실 나가볼까요</h2>
+          <p class="sub">이웃과 도움을 주고받기 위해<br>로그인 해주세요.</p>
+          <label class="lbl" for="lgPhone" style="margin-top:90px">휴대폰 번호</label>
+          <input class="field" id="lgPhone" type="text" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="숫자만 입력해 주세요.">
+          <button class="btn" id="lgBtn" style="margin-top:11px" aria-disabled="true">로그인</button>
+          <button class="keep" id="keep" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg><span>로그인 상태 유지</span></button>
+          <div class="sns">
+            <button class="kk" id="kakao"><svg width="18" height="17" viewBox="0 0 18 17" fill="#000"><path d="M9 0C4 0 0 3.2 0 7.2c0 2.5 1.6 4.7 4 6l-1 3.6c0 .3.3.4.5.3L8 14.4c.3 0 .7.1 1 .1 5 0 9-3.2 9-7.2S14 0 9 0z"/></svg>카카오</button>
+            <button class="nv" id="naver"><svg width="14" height="14" viewBox="0 0 14 14" fill="#fff"><path d="M9.4 7.5L4.4 0H0v14h4.6V6.5L9.6 14H14V0H9.4z"/></svg>네이버</button>
+          </div>
+          <div class="divider" style="margin-top:20px"></div>
+          <button class="btn" id="goJoin" style="margin-top:20px">회원가입</button>
+        </div>
+      </section>
+
+      <!-- 이용약관 -->
+      <section class="screen" id="s-terms" aria-label="이용약관">
+        <header class="nav"><button class="bk" data-back aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>이용약관</h1></header>
+        <div class="c">
+          <h2 class="h" style="margin-top:47px">마실 이용 전에 꼭 확인해 주세요</h2>
+          <p class="sub">마실에서 이웃과 안심하고 도움을<br>주고받을 수 있도록 함께 지켜주세요.</p>
+          <div class="agree" data-k="req" style="margin-top:124px"><button class="m" data-t="req" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>필수 약관 모두 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+          <div class="divider" style="margin:20px 0 21px"></div>
+          <div class="alist">
+            <div class="agree" data-k="svc"><button class="m" data-t="svc" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>[필수] 서비스 이용약관 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+            <div class="agree" data-k="priv"><button class="m" data-t="priv" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>[필수] 개인정보 수집 및 이용 안내 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+            <div class="agree" data-k="third"><button class="m" data-t="third" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>[필수] 개인정보 제3자 제공 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+            <div class="agree" data-k="mkt"><button class="m" data-t="mkt" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>[선택] 서비스 마케팅 수신 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+          </div>
+        </div>
+        <button class="cta" id="cTerms" aria-disabled="true">가입하기</button>
+      </section>
+
+      <!-- 1단계 -->
+      <section class="screen" id="s-s1" aria-label="회원가입 1단계">
+        <header class="nav"><button class="bk" data-back aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>회원가입</h1></header>
+        <div class="c">
+          <div class="steps" aria-label="3단계 중 1단계"><i class="on">1</i><i>2</i><i>3</i></div>
+          <h2 class="h" style="margin-top:33px">이웃에게 나를 소개해볼까요?</h2>
+          <p class="sub">입력한 정보는 안전하게 보호되며,<br>이웃 연결에만 사용돼요.</p>
+          <label class="lbl" for="inName" style="margin-top:41px">이름</label>
+          <input class="field" id="inName" type="text" maxlength="20" autocomplete="off" placeholder="이름을 입력해 주세요.">
+          <label class="lbl" for="inBirth" style="margin-top:33px">생년월일</label>
+          <input class="field" id="inBirth" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="생년월일 8자리를 입력해 주세요.">
+          <span class="lbl" style="margin-top:33px">성별</span>
+          <div class="gender" role="group" aria-label="성별"><button data-g="남성" aria-pressed="false">남성</button><button data-g="여성" aria-pressed="false">여성</button></div>
+        </div>
+        <button class="cta" id="c1" aria-disabled="true">다음</button>
+      </section>
+
+      <!-- 2단계 -->
+      <section class="screen" id="s-s2" aria-label="회원가입 2단계">
+        <header class="nav"><button class="bk" data-back aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>회원가입</h1></header>
+        <div class="c">
+          <div class="steps" aria-label="3단계 중 2단계"><i>1</i><i class="on">2</i><i>3</i></div>
+          <h2 class="h" style="margin-top:33px">휴대폰 번호를 입력해 주세요</h2>
+          <p class="sub">본인 확인과 이웃 매칭 알림을 위해 사용돼요.</p>
+          <label class="lbl" for="inPhone" style="margin-top:42px">휴대폰 번호</label>
+          <input class="field" id="inPhone" type="text" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="숫자만 입력해 주세요.">
+          <button class="btn" id="getCode" style="margin-top:11px" aria-disabled="true">인증번호 받기</button>
+          <label class="lbl" for="inCode" style="margin-top:34px">인증번호</label>
+          <div class="inwrap"><input class="field" id="inCode" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" readonly><span class="timer" id="timer" hidden>5:00</span></div>
+          <button class="resend" id="resend">인증번호 다시 보내기</button>
+        </div>
+        <button class="cta" id="c2" aria-disabled="true">다음</button>
+      </section>
+
+      <!-- 3단계 -->
+      <section class="screen" id="s-s3" aria-label="회원가입 3단계">
+        <header class="nav"><button class="bk" data-back aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>회원가입</h1></header>
+        <div class="c">
+          <div class="steps" aria-label="3단계 중 3단계"><i>1</i><i>2</i><i class="on">3</i></div>
+          <h2 class="h" style="margin-top:33px">거주하시는 주소를 알려주세요</h2>
+          <p class="sub">같은 단지 이웃과만 연결되니<br>안심하고 입력해 주세요.</p>
+          <span class="lbl" style="margin-top:41px">주소</span>
+          <button class="field fieldbtn" id="addrBtn"><span class="ph" id="addrPh">주소를 입력해 주세요.</span><span class="tx" id="addrTx" hidden></span></button>
+          <div class="divider" style="margin-top:20px"></div>
+          <dl class="ex" style="margin-bottom:0">
+            <dd style="font-size:14px;line-height:20px;color:#000">입력 예시</dd>
+            <dt>도로명 + 건물번호</dt><dd>예시) 종로 6, 반포대로26길 20</dd>
+            <dt>지역명(동/리) + 번지</dt><dd>예시) 서린동 154-1, 서초동 1549-3</dd>
+          </dl>
+        </div>
+        <button class="cta" id="c3" aria-disabled="true">완료</button>
+      </section>
+
+      <!-- 네이버 약관 -->
+      <section class="screen" id="s-ntrm" aria-label="네이버 로그인 약관">
+        <header class="nav"><button class="bk" data-back aria-label="뒤로"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h1>로그인</h1></header>
+        <div class="c">
+          <p class="logo" style="margin-top:51px">NAVER</p>
+          <p class="nvdesc">마실 서비스 제공을 위해 회원번호와 함께 개인정보가<br>제공됩니다. 보다 자세한 개인정보 제공항목은 동의<br>내용에서 확인하실 수 있습니다. 해당 정보는 동의 철회<br>또는 서비스 탈퇴 시 지체없이 파기됩니다.</p>
+          <div class="agree" data-k="req" style="margin-top:71px"><button class="m" data-t="req" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>필수 약관 모두 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+          <div class="divider" style="margin:20px 0 21px"></div>
+          <div class="alist">
+            <div class="agree" data-k="third"><button class="m" data-t="third" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>[필수] 개인정보 제3자 제공 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+            <div class="agree" data-k="mkt"><button class="m" data-t="mkt" aria-pressed="false"><svg class="ic" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.3 11.4l3.2 3.2 6.2-6.4"/></svg>[선택] 서비스 마케팅 수신 동의</button><button class="cv" data-doc aria-label="약관 보기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+          </div>
+        </div>
+        <button class="cta" id="cN" aria-disabled="true">완료</button>
+      </section>
+
+      <!-- 주소 검색 시트 -->
+      <div class="dim" id="dim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-label="주소 검색" inert>
+        <h2>주소 검색</h2>
+        <input class="field" id="qIn" type="text" autocomplete="off" placeholder="주소를 검색해 주세요.">
+        <div class="sdiv"></div>
+        <div id="results"></div>
+        <button class="cta" id="cSheet" aria-disabled="true">완료</button>
+      </div>
+      <div class="kbd" id="kbd" aria-hidden="true"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+  var ids=['login','terms','s1','s2','s3','ntrm'];
+  var FINE=window.matchMedia('(pointer:fine)').matches;
+  var S,stack=['login'],timerId=null,toastId=null;
+
+  function fresh(){
+    return {agree:{svc:false,priv:false,third:false,mkt:false},name:'',birth:'',gender:'',phone:'',sent:false,code:'',left:0,addr:'',sel:-1,query:'',nv:{third:false,mkt:false}};
+  }
+  S=fresh();
+
+  /* ---------- 공통 ---------- */
+  function toast(msg){
+    var t=$('#toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastId); toastId=setTimeout(function(){t.classList.remove('show')},2200);
+  }
+  function setOn(btn,on){btn.classList.toggle('on',!!on); btn.setAttribute('aria-disabled',on?'false':'true');}
+  function digits(v,n){return v.replace(/\D/g,'').slice(0,n);}
+  function validPhone(v){return /^01\d{8,9}$/.test(v);}
+  function validBirth(v){
+    if(!/^\d{8}$/.test(v)) return false;
+    var y=+v.slice(0,4),m=+v.slice(4,6),d=+v.slice(6),now=new Date(),dt=new Date(y,m-1,d);
+    return y>=1900 && dt.getFullYear()===y && dt.getMonth()===m-1 && dt.getDate()===d && dt<=now;
+  }
+
+  /* ---------- 라우팅 ---------- */
+  function paint(){
+    ids.forEach(function(id){
+      var el=$('#s-'+id), i=stack.indexOf(id);
+      el.classList.remove('active','past');
+      if(i===stack.length-1) el.classList.add('active');
+      else if(i>-1) el.classList.add('past');
+      el.inert = i!==stack.length-1;
+    });
+  }
+  function go(id){ closeSheet(true); stack.push(id); paint(); }
+  function back(){ closeSheet(true); if(stack.length>1){stack.pop(); paint();} }
+  function setStack(arr){ closeSheet(true); stack=arr.slice(); paint(); }
+
+  /* ---------- 로그인 ---------- */
+  var lgPhone=$('#lgPhone'), lgBtn=$('#lgBtn');
+  function upLogin(){ setOn(lgBtn,validPhone(lgPhone.value)); }
+  lgPhone.addEventListener('input',function(){lgPhone.value=digits(lgPhone.value,11);upLogin();});
+  lgPhone.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+  function doLogin(){ if(!validPhone(lgPhone.value)) return; toast('로그인되었어요'); }
+  lgBtn.addEventListener('click',doLogin);
+  $('#keep').addEventListener('click',function(){
+    var b=$('#keep'), on=!b.classList.contains('on'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on);
+  });
+  $('#kakao').addEventListener('click',function(){toast('카카오 로그인은 이 프로토타입에 포함되지 않았어요');});
+  $('#loginX').addEventListener('click',function(){toast('앱 홈으로 이동해요');});
+  $('#naver').addEventListener('click',function(){S.nv={third:false,mkt:false};upNtrm();go('ntrm');});
+  $('#goJoin').addEventListener('click',function(){resetSignup();go('terms');});
+
+  function resetSignup(){
+    var keepNv=S.nv; S=fresh(); S.nv=keepNv;
+    clearInterval(timerId);
+    $('#inName').value='';$('#inBirth').value='';$('#inPhone').value='';$('#inCode').value='';
+    $('#inCode').readOnly=true;$('#timer').hidden=true;
+    upTerms();up1();up2();up3();
+  }
+
+  /* ---------- 약관 / 네이버 약관 ---------- */
+  function agreeUI(scope,keys,reqKeys){
+    var req=reqKeys.every(function(k){return keys[k];});
+    $$(scope+' .agree').forEach(function(box){
+      var k=box.dataset.k, on=k==='req'?req:keys[k];
+      box.classList.toggle('on',on);
+      box.querySelector('.m').setAttribute('aria-pressed',on);
+    });
+    return req;
+  }
+  function upTerms(){ setOn($('#cTerms'),agreeUI('#s-terms',S.agree,['svc','priv','third'])); }
+  function upNtrm(){ setOn($('#cN'),agreeUI('#s-ntrm',S.nv,['third'])); }
+  function bindAgree(scope,get,reqKeys,up){
+    $$(scope+' .m').forEach(function(b){
+      b.addEventListener('click',function(){
+        var k=b.dataset.t, keys=get();
+        if(k==='req'){var all=reqKeys.every(function(x){return keys[x];});reqKeys.forEach(function(x){keys[x]=!all;});}
+        else keys[k]=!keys[k];
+        up();
+      });
+    });
+    $$(scope+' .cv').forEach(function(b){b.addEventListener('click',function(){toast('약관 상세 화면은 이 프로토타입에 포함되지 않았어요');});});
+  }
+  bindAgree('#s-terms',function(){return S.agree;},['svc','priv','third'],upTerms);
+  bindAgree('#s-ntrm',function(){return S.nv;},['third'],upNtrm);
+  $('#cTerms').addEventListener('click',function(){ if($('#cTerms').classList.contains('on')) go('s1'); });
+  $('#cN').addEventListener('click',function(){
+    if(!$('#cN').classList.contains('on')) return;
+    toast('네이버 계정으로 로그인되었어요'); setTimeout(function(){setStack(['login']);},500);
+  });
+
+  /* ---------- 1단계 ---------- */
+  function up1(){ setOn($('#c1'), S.name.trim().length>0 && validBirth(S.birth) && !!S.gender); }
+  $('#inName').addEventListener('input',function(e){S.name=e.target.value;up1();});
+  $('#inBirth').addEventListener('input',function(e){e.target.value=digits(e.target.value,8);S.birth=e.target.value;up1();});
+  $$('.gender button').forEach(function(b){
+    b.addEventListener('click',function(){
+      S.gender=b.dataset.g;
+      $$('.gender button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on);});
+      up1();
+    });
+  });
+  $('#c1').addEventListener('click',function(){ if($('#c1').classList.contains('on')) go('s2'); });
+
+  /* ---------- 2단계 ---------- */
+  var inPhone=$('#inPhone'), inCode=$('#inCode'), timerEl=$('#timer');
+  function fmt(l){return Math.floor(l/60)+':'+String(l%60).padStart(2,'0');}
+  function up2(){
+    var pv=validPhone(S.phone);
+    setOn($('#getCode'), pv && !S.sent);
+    setOn($('#c2'), S.sent && S.code.length===6 && S.left>0);
+  }
+  function sendCode(){
+    if(!validPhone(S.phone)) return;
+    S.sent=true; S.left=300; S.code=''; inCode.value=''; inCode.readOnly=false;
+    timerEl.hidden=false; timerEl.textContent=fmt(S.left);
+    clearInterval(timerId);
+    timerId=setInterval(function(){
+      S.left=Math.max(0,S.left-1); timerEl.textContent=fmt(S.left);
+      if(S.left===0) clearInterval(timerId);
+      up2();
+    },1000);
+    toast('인증번호를 보냈어요'); up2(); inCode.focus();
+  }
+  inPhone.addEventListener('input',function(){
+    inPhone.value=digits(inPhone.value,11); S.phone=inPhone.value;
+    if(S.sent){S.sent=false;S.code='';inCode.value='';inCode.readOnly=true;timerEl.hidden=true;clearInterval(timerId);}
+    up2();
+  });
+  inCode.addEventListener('input',function(){inCode.value=digits(inCode.value,6);S.code=inCode.value;up2();});
+  $('#getCode').addEventListener('click',function(){ if(!S.sent) sendCode(); });
+  $('#resend').addEventListener('click',sendCode);
+  $('#c2').addEventListener('click',function(){ if($('#c2').classList.contains('on')){clearInterval(timerId);go('s3');} });
+
+  /* ---------- 3단계 · 주소 ---------- */
+  var DB=[
+    {road:'강원특별자치도 원주시 흥업면 세동길 25',jibun:'강원특별자치도 원주시 흥업면 매지리 257-2'},
+    {road:'전라남도 광양시 세동길 25 (중동)',jibun:'전라남도 광양시 중동 2523-8'},
+    {road:'서울특별시 종로구 종로 6',jibun:'서울특별시 종로구 서린동 154-1'},
+    {road:'서울특별시 서초구 반포대로26길 20',jibun:'서울특별시 서초구 서초동 1549-3'}
+  ];
+  function up3(){
+    var has=!!S.addr;
+    $('#addrPh').hidden=has; $('#addrTx').hidden=!has; $('#addrTx').textContent=S.addr;
+    setOn($('#c3'),has);
+  }
+  function search(q){
+    var t=q.trim().split(/\s+/).filter(Boolean);
+    if(!t.length) return [];
+    return DB.map(function(d,i){return {d:d,i:i};}).filter(function(o){
+      var s=o.d.road+' '+o.d.jibun; return t.every(function(x){return s.indexOf(x)>-1;});
+    });
+  }
+  var qIn=$('#qIn'), resEl=$('#results');
+  function renderResults(){
+    var q=qIn.value, list=search(q); resEl.innerHTML='';
+    if(q.trim() && !list.length){ var p=document.createElement('p'); p.className='none'; p.textContent='검색 결과가 없어요.'; resEl.appendChild(p); }
+    list.forEach(function(o){
+      var b=document.createElement('button'); b.className='res'+(o.i===S.sel?' sel':'');
+      var t=document.createElement('b'); t.textContent=o.d.road;
+      var s=document.createElement('small'); s.textContent=o.d.jibun;
+      b.appendChild(t); b.appendChild(s);
+      b.addEventListener('click',function(){S.sel=o.i; closeKb(); renderResults(); upSheet();});
+      resEl.appendChild(b);
+    });
+  }
+  function upSheet(){ setOn($('#cSheet'),S.sel>-1); }
+  qIn.addEventListener('input',function(){S.sel=-1;renderResults();upSheet();});
+  qIn.addEventListener('focus',openKb);
+  qIn.addEventListener('click',openKb);
+  qIn.addEventListener('keydown',function(e){if(e.key==='Enter')closeKb();});
+
+  function openSheet(){
+    S.sel=-1; qIn.value=''; renderResults(); upSheet();
+    $('#dim').classList.add('open'); var sh=$('#sheet'); sh.inert=false; sh.classList.add('open');
+    try{qIn.focus({preventScroll:true});}catch(e){qIn.focus();}
+  }
+  function closeSheet(silent){
+    closeKb(); $('#dim').classList.remove('open'); var sh=$('#sheet'); sh.classList.remove('open'); sh.inert=true;
+  }
+  $('#addrBtn').addEventListener('click',openSheet);
+  $('#dim').addEventListener('click',function(){closeSheet();});
+  $('#cSheet').addEventListener('click',function(){
+    if(S.sel<0) return; S.addr=DB[S.sel].road; up3(); closeSheet();
+  });
+  $('#c3').addEventListener('click',function(){
+    if(!$('#c3').classList.contains('on')) return;
+    var ph=S.phone; toast('가입이 완료되었어요');
+    setTimeout(function(){ lgPhone.value=ph; upLogin(); setStack(['login']); },500);
+  });
+
+  /* ---------- 키보드 목업 ---------- */
+  var kb=$('#kbd'), kbMode='abc', shift=false;
+  var ICON={
+    shift:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"><path d="M12 4l8 9h-4.8v6H8.8v-6H4z"/></svg>',
+    del:'<svg width="26" height="22" viewBox="0 0 26 22" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M8.5 2.5h14a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5h-14L1.5 11z"/><path d="M13 8l6 6M19 8l-6 6"/></svg>',
+    ret:'<svg width="24" height="20" viewBox="0 0 24 20" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3v7a2 2 0 0 1-2 2H4M8 7.5L3.5 12 8 16.5"/></svg>',
+    emoji:'<svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#000" stroke-width="1.8"><circle cx="13" cy="13" r="10.5"/><circle cx="9.3" cy="10.5" r="1.1" fill="#000" stroke="none"/><circle cx="16.7" cy="10.5" r="1.1" fill="#000" stroke="none"/><path d="M8 15.3c1.2 2.2 3 3.2 5 3.2s3.8-1 5-3.2" stroke-linecap="round"/></svg>',
+    mic:'<svg width="22" height="26" viewBox="0 0 22 26" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round"><rect x="7" y="1.5" width="8" height="14" rx="4"/><path d="M3 12c0 4.5 3.5 7.5 8 7.5s8-3 8-7.5M11 19.5v4"/></svg>'
+  };
+  function kbRender(){
+    var abc=[['q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['SHIFT','z','x','c','v','b','n','m','DEL']];
+    var num=[['1','2','3','4','5','6','7','8','9','0'],['-','/',':',';','(',')','$','&','@','"'],['SYM','.',',','?','!',"'",'DEL']];
+    var rows=kbMode==='abc'?abc:num;
+    var h='<div class="sg"><span>“The”</span><span>the</span><span>to</span></div><div class="rows">';
+    rows.forEach(function(r,ri){
+      h+='<div class="row'+(ri===1&&kbMode==='abc'?' i2':'')+'">';
+      r.forEach(function(k){
+        if(k==='SHIFT') h+='<button class="k w" data-k="SHIFT" aria-label="Shift">'+ICON.shift+'</button>';
+        else if(k==='DEL') h+='<button class="k w" data-k="DEL" aria-label="지우기">'+ICON.del+'</button>';
+        else if(k==='SYM') h+='<button class="k w" data-k="SYM" style="font-size:15px">#+=</button>';
+        else{var ch=(kbMode==='abc'&&shift)?k.toUpperCase():k; h+='<button class="k" data-k="'+(ch==='"'?'&quot;':ch)+'">'+(ch==='&'?'&amp;':ch)+'</button>';}
+      });
+      h+='</div>';
+    });
+    h+='<div class="row"><button class="k fn" data-k="MODE">'+(kbMode==='abc'?'123':'ABC')+'</button><button class="k sp" data-k=" " aria-label="스페이스"></button><button class="k fn" data-k="RET" aria-label="검색">'+ICON.ret+'</button></div></div>';
+    h+='<div class="bot">'+ICON.emoji+ICON.mic+'</div>';
+    kb.innerHTML=h;
+  }
+  function insert(ch){
+    var s=qIn.selectionStart==null?qIn.value.length:qIn.selectionStart, e=qIn.selectionEnd==null?s:qIn.selectionEnd;
+    qIn.setRangeText(ch,s,e,'end'); qIn.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  function del(){
+    var s=qIn.selectionStart==null?qIn.value.length:qIn.selectionStart, e=qIn.selectionEnd==null?s:qIn.selectionEnd;
+    if(s!==e) qIn.setRangeText('',s,e,'end'); else if(s>0) qIn.setRangeText('',s-1,s,'end');
+    qIn.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  kb.addEventListener('mousedown',function(e){e.preventDefault();});
+  kb.addEventListener('click',function(e){
+    var b=e.target.closest('.k'); if(!b) return; var k=b.dataset.k;
+    if(k==='SHIFT'){shift=!shift;kbRender();}
+    else if(k==='DEL') del();
+    else if(k==='MODE'){kbMode=kbMode==='abc'?'num':'abc';shift=false;kbRender();}
+    else if(k==='RET') closeKb();
+    else if(k==='SYM'){}
+    else{insert(k); if(shift){shift=false;kbRender();}}
+  });
+  function openKb(){ if(!FINE) return; kb.classList.add('open'); }
+  function closeKb(){ kb.classList.remove('open'); if(document.activeElement===qIn) qIn.blur(); }
+  kbRender();
+
+  /* ---------- 바로가기 ---------- */
+  var PATH={login:['login'],terms:['login','terms'],s1:['login','terms','s1'],s2:['login','terms','s1','s2'],s3:['login','terms','s1','s2','s3'],ntrm:['login','ntrm'],sheet:['login','terms','s1','s2','s3']};
+  $$('#jumps button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var j=b.dataset.j; resetSignup(); S.nv={third:false,mkt:false}; upNtrm();
+      setStack(PATH[j]); if(j==='sheet') setTimeout(openSheet,350);
+    });
+  });
+  $('#reset').addEventListener('click',function(){
+    resetSignup(); S.nv={third:false,mkt:false}; upNtrm(); lgPhone.value=''; upLogin();
+    var k=$('#keep'); k.classList.remove('on'); k.setAttribute('aria-pressed','false'); setStack(['login']);
+  });
+
+  /* ---------- 화면 맞춤 ---------- */
+  function isPhone(){return window.matchMedia('(pointer:coarse)').matches && window.innerWidth<=500;}
+  function fit(){
+    var wr=$('#wrap'), dv=$('#device'), ph=isPhone();
+    document.body.classList.toggle('phone',ph); document.documentElement.classList.toggle('phone-h',ph);
+    if(ph){
+      wr.style.width=''; wr.style.height='';
+      var k=wr.clientWidth/390; dv.style.height=(wr.clientHeight/k)+'px'; dv.style.transform='scale('+k+')';
+      return;
+    }
+    dv.style.height='';
+    var panel=$('.panel'), stage=$('.stage');
+    var w=stage.clientWidth-(getComputedStyle(panel).display==='none'?0:260+56);
+    var s=Math.min(1,w/390,(window.innerHeight-32)/844);
+    if(s<=0) s=.5;
+    $('#wrap').style.width=(390*s)+'px'; $('#wrap').style.height=(844*s)+'px';
+    $('#device').style.transform='scale('+s+')';
+  }
+  window.addEventListener('resize',function(){
+    var a=document.activeElement; if(!FINE && a && a.tagName==='INPUT') return; fit();
+  });
+
+  /* 키보드의 완료/이동 키를 누르면 키보드를 내린다 */
+  document.addEventListener('keydown',function(e){ if(e.key==='Enter' && e.target.tagName==='INPUT') e.target.blur(); });
+  /* iOS 핀치 확대 방지 */
+  ['gesturestart','gesturechange'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault();});});
+  /* 전시용 초기화: 화면 상단 제목을 1.5초 길게 누르면 처음 화면으로 돌아간다 */
+  $$('.nav h1').forEach(function(h){
+    var t;
+    function st(){clearTimeout(t);t=setTimeout(function(){$('#reset').click();toast('처음 화면으로 돌아왔어요');},1500);}
+    function en(){clearTimeout(t);}
+    h.addEventListener('touchstart',st,{passive:true}); h.addEventListener('mousedown',st);
+    ['touchend','touchcancel','touchmove','mouseup','mouseleave'].forEach(function(n){h.addEventListener(n,en,{passive:true});});
+  });
+  window.addEventListener('orientationchange',function(){setTimeout(fit,250);});
+
+  upLogin();upTerms();up1();up2();up3();upNtrm();
+  fit(); paint();
+  requestAnimationFrame(function(){requestAnimationFrame(function(){document.body.classList.add('ready');});});
+})();
+</script></body></html>
