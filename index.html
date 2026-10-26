@@ -422,7 +422,7 @@ a{cursor:pointer;text-decoration:none;color:inherit}
 .cmrel+.cmcms{border-top:0;padding-top:28px}
 .cam::before{inset:2px;box-shadow:0 0 0 3px #fff}.cam .ic{position:relative;z-index:1}
 
-html.sa body::before{content:'';position:absolute;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:linear-gradient(rgba(44,20,5,.5),rgba(44,20,5,0));z-index:99999;pointer-events:none}
+html.sa body::before{content:'';position:absolute;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--sb,transparent);z-index:99999;pointer-events:none}
 html.sa,html.sa body{background:#f7f7f7}
 
 html.sa #root{align-items:flex-start}html.sa,html.sa body{height:100%;overflow:hidden}
@@ -517,6 +517,8 @@ function dots(step,ovr,ins){ // step 1..3
 const S = { addr:'', detail:'', verified:false, nick:'', intro:'', skills:[], days:[], times:[], memo:'', match:true, phone:'', keep:true, terms:[false,false,false,false,false], authed:false, name:'', birth:'', gender:'', sp:'', sent:false, otp:'', otpOk:false, sec:300 };
 
 
+/* 상태바 영역 색: 화면 상단이 어두운 화면만 단색, 나머지는 투명 */
+function sbSet(c){ document.documentElement.style.setProperty('--sb', c||'transparent') }
 /* ----- router ----- */
 const R = { stack:[], root:null,
   mount(el){ this.root=el },
@@ -535,7 +537,7 @@ const R = { stack:[], root:null,
     } else if(prev) prev.el.remove();
     if(replace) this.stack.pop();
     this.stack.push({id,el});
-    figWatch(el); tpl.mount && tpl.mount(el);
+    sbSet(tpl.sb); figWatch(el); tpl.mount && tpl.mount(el);
   },
   back(){
     if(this.stack.length<2) return;
@@ -544,7 +546,7 @@ const R = { stack:[], root:null,
     el.innerHTML=tpl.render(); if(tpl.bg) el.style.background=tpl.bg; if(tpl.hb) el.insertAdjacentHTML('beforeend','<div class="hbar"><i></i></div>'); this.root.appendChild(el); prev.el=el;
     cur.el.classList.add('leave-r');
     requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('enter-l')));
-    setTimeout(()=>cur.el.remove(),300); figWatch(el); tpl.mount&&tpl.mount(el);
+    setTimeout(()=>cur.el.remove(),300); sbSet(tpl.sb); figWatch(el); tpl.mount&&tpl.mount(el);
   }
 };
 
@@ -1538,7 +1540,7 @@ const bubHTML=(m,first,prevMe)=>{
   return `<div class="xcbl"><div style="display:flex;align-items:flex-end"><span class="xcb">${pieces(m.t.length>8?BUB_L2:BUB_L1)}<span class="t m15 xcbt">${m.t}</span></span>${m.time?`<span class="t xctime" style="padding-left:5px">${m.time}</span>`:''}</div></div>`;
 };
 const PHONE=`<span class="xcph"><i style="position:absolute;inset:4% 6.87%;background:#fff;-webkit-mask:url('${A('29b47.png')}') center/100% 100% no-repeat;mask:url('${A('29b47.png')}') center/100% 100% no-repeat"></i></span>`;
-SCREENS.chatroom={ bg:'#fff', hb:true, render:()=>{
+SCREENS.chatroom={ bg:'#fff', sb:'#2c1405', hb:true, render:()=>{
   const w=who(); const ms=MSGS(); const sent=ms.some(m=>m.me); let firstMe=true;
   return `<div class="xcrm"><div class="xchd"><div class="xchr1"><a class="xchl" data-act="back"><span class="ic" style="width:11.248px;height:20px"><span class="pc" style="inset:-.44% -1.35% -1.65% 0"><img class="pi" src="${A('b80b9.svg')}" alt=""></span></span></a><p class="t" style="font-weight:700;font-size:22px;line-height:33px;color:#fff;text-align:center">채팅</p><a class="xchrr" id="cCall">${PHONE}</a></div>
     <div class="xchr2"><div class="xchb"><div style="padding:10px"><span class="xchtag">${pieces(CH_TAG)}<span class="t m12" style="position:relative;color:#fff;line-height:18px">${w.tag}</span></span></div>
@@ -1572,7 +1574,7 @@ SCREENS.chatroom={ bg:'#fff', hb:true, render:()=>{
  }};
 
 /* ---- 영상통화 대기 (청소/취업) ---- */
-SCREENS.vcall={ bg:'#fff', hb:true, render:()=>{ const v=cur(); return `<div class="sscroll w" style="padding-bottom:100px" id="ss">
+SCREENS.vcall={ bg:'#fff', sb:'#141414', hb:true, render:()=>{ const v=cur(); return `<div class="sscroll w" style="padding-bottom:100px" id="ss">
   <div class="lbgm" style="background:#141414"></div>
   <div class="lmap vdk nl"><a class="vbk" data-act="back"><span class="ic" style="width:11.248px;height:20px"><span class="pc" style="inset:-.44% -1.35% -1.65% 0"><img class="pi" src="${A('8aee7.svg')}" alt=""></span></span></a>
    <div class="vpn">${[['-80px','-70px',240,'5322e',25],['190px','-50px',220,'8e1ae',27.27],['170px','100px',240,'8b657',25],['-60px','110px',210,'58d2d',28.57],['90px','40px',190,'9da59',31.58]].map(([l,t,z,f,i])=>`<span class="vbl" style="left:${l};top:${t};width:${z}px;height:${z}px"><img src="${A(f+'.svg')}" alt="" style="position:absolute;inset:-${i}%;width:${100+2*i}%;height:${100+2*i}%;max-width:none"></span>`).join('')}
