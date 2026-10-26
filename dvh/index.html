@@ -423,7 +423,7 @@ a{cursor:pointer;text-decoration:none;color:inherit}
 .cam::before{inset:2px;box-shadow:0 0 0 3px #fff}.cam .ic{position:relative;z-index:1}
 
 html.sa body::before{content:'';position:absolute;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--sb,transparent);z-index:99999;pointer-events:none}
-html.sa,html.sa body{background:#f7f7f7}
+html.sa,html.sa body{background:var(--sbbg,#f7f7f7)}
 
 html.sa #root{align-items:flex-start}html.sa,html.sa body{height:100%;overflow:hidden}
 
@@ -521,7 +521,7 @@ const S = { addr:'', detail:'', verified:false, nick:'', intro:'', skills:[], da
 
 
 /* 상태바 영역 색: 화면 상단이 어두운 화면만 단색, 나머지는 투명 */
-function sbSet(c){ document.documentElement.style.setProperty('--sb', c||'transparent') }
+function sbSet(c){ const d=document.documentElement; d.style.setProperty('--sb', c||'transparent'); d.style.setProperty('--sbbg', c||'#f7f7f7'); const m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content', c||'#f7f7f7') }
 /* ----- router ----- */
 const R = { stack:[], root:null,
   mount(el){ this.root=el },
