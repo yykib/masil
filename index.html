@@ -1184,7 +1184,7 @@ SCREENS.home={ bg:'#f7f7f7', render:()=>`<div class="hscroll" id="hs"><div class
       <a class="tog ${S.match?'on':''}" id="tog" role="switch" aria-checked="${S.match}" aria-label="지금 매칭 가능"><span class="tbg">${pieces(P_TOG)}</span><span class="knob"><img src="${A('87c37.svg')}" alt="" class="pi f"><span class="pc" style="inset:0 -.32% 0 -1.18%"><img class="pi" src="${A('1abff.svg')}" alt=""></span></span></a></div></div></div>
   <div class="hw" style="padding-top:12px"><div class="ccard">${pieces(P_CAT)}<p class="t b17" style="color:#2c1405;position:relative">어떤 도움이 필요하세요?</p>
     <div class="cats">${CATS.map(([n,ic,pc])=>`<a class="cat" data-cat="${n}"><span class="ci">${pieces(pc)}${spr(ic,32)}</span><span class="t m12" style="color:#2c1405;text-align:center">${n}</span></a>`).join('')}</div>
-    <a class="guide" data-soon="1"><span class="pc" style="left:.2px;right:-.13px;top:-1.16px;height:3.41px"><span class="pc" style="inset:-14.57% 0 -14.91% 0"><img class="pi" src="${A('308ec.svg')}" alt=""></span></span>${spr('bulb',20)}<span class="t m15" style="color:#2c1405;position:relative">마실이 처음이라면? 이용 안내 보기</span>${IC_CHEV}</a></div></div>
+    <a class="guide" data-href="https://yykib.notion.site/masil"><span class="pc" style="left:.2px;right:-.13px;top:-1.16px;height:3.41px"><span class="pc" style="inset:-14.57% 0 -14.91% 0"><img class="pi" src="${A('308ec.svg')}" alt=""></span></span>${spr('bulb',20)}<span class="t m15" style="color:#2c1405;position:relative">마실이 처음이라면? 이용 안내 보기</span>${IC_CHEV}</a></div></div>
   <div class="hw" style="padding-top:12px"><a class="prog" data-soon="1">${pieces(P_PROG)}<span class="pbl"><img src="${A('f33b0.svg')}" alt="" style="position:absolute;inset:-.93% -.2% 0 0;width:100.2%;height:101%">${spr('pan',24)}</span>
     <span style="flex:1;min-width:0;text-align:left;position:relative;display:flex;flex-direction:column;gap:2px"><p class="t m16" style="color:#2c1405">김치찌개 끓이기 도움</p><p class="t m12" style="color:#727272">이웃의 수락을 기다리고 있어요</p></span>
     <span class="wait">${pieces(P_BDG)}<span class="t m12" style="position:relative;color:#2c1405">매칭 대기</span></span>${IC_CHEV}</a></div>
@@ -1198,6 +1198,7 @@ SCREENS.home={ bg:'#f7f7f7', render:()=>`<div class="hscroll" id="hs"><div class
     const tog=el.querySelector('#tog');
     tog.addEventListener('click',()=>{ S.match=!S.match; tog.classList.toggle('on',S.match); tog.setAttribute('aria-checked',S.match); toast(S.match?'매칭 가능으로 바꿨어요':'매칭을 잠시 꺼 뒀어요'); });
     el.querySelectorAll('[data-cat]').forEach(a=>a.addEventListener('click',()=>{ if(!S.authed){ R.show('guest'); return } if(!S.verified){ S.pendCat=a.dataset.cat; R.show('vguide'); return } if(V[a.dataset.cat]){ S.cat=a.dataset.cat; S.chatOn=true; S.dc=null; S.reqTo=0; R.show('detail2') } else toast(`‘${a.dataset.cat}’ 요청 화면은 곧 열려요`) }));
+    el.querySelectorAll('[data-href]').forEach(a=>a.addEventListener('click',()=>{ window.open(a.dataset.href,'_blank','noopener') }));
     el.querySelectorAll('[data-soon]').forEach(a=>a.addEventListener('click',()=>toast('이 화면은 다음 단계에서 열려요')));
     /* pull-to-refresh */
     const hs=el.querySelector('#hs'), hb=el.querySelector('#hb'), ptr=el.querySelector('#ptr'); let y0=null,dy=0,busy=false;
