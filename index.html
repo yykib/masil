@@ -1958,7 +1958,7 @@ function tabSwitch(to){
   bl.animate([{opacity:0},{opacity:1}],{duration:D,easing:'ease-out'}).onfinish=()=>{ bl.remove(); nel.style.background=bg; nel.style.isolation='' };
   [...nel.children].forEach(c=>{ if(c===bl||c.classList.contains('tabbar')) return; c.animate([{opacity:0,translate:(dir*32)+'px 0'},{opacity:1,translate:'0 0'}],{duration:D,easing:E}) });
   [...pel.children].forEach(c=>{ if(c.classList.contains('tabbar')) return; c.animate([{opacity:1,translate:'0 0'},{opacity:0,translate:(-dir*24)+'px 0'}],{duration:200,easing:'ease-in',fill:'forwards'}) });
-  const np=nel.querySelector('.tabpill'); if(np&&ox!=null){ const dx=(ox-np.getBoundingClientRect().left)/sc; np.animate([{translate:dx+'px 0'},{translate:'0 0'}],{duration:320,easing:'cubic-bezier(.55,1.5,.6,1)'}) }
+  const np=nel.querySelector('.tabpill'); if(np&&ox!=null){ const dx=(ox-np.getBoundingClientRect().left)/sc; np.animate([{translate:dx+'px 0'},{translate:'0 0'}],{duration:320+Math.max(0,Math.abs(ti-fi)-1)*50,easing:'cubic-bezier(.55,1.5,.6,1)'}) }
   setTimeout(()=>pel.remove(),270);
 }
 document.addEventListener('DOMContentLoaded',()=>{
