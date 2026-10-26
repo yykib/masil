@@ -1958,7 +1958,7 @@ function tabSwitch(to){
   bl.animate([{opacity:0},{opacity:1}],{duration:D,easing:'ease-out'}).onfinish=()=>{ bl.remove(); nel.style.background=bg; nel.style.isolation='' };
   [...nel.children].forEach(c=>{ if(c===bl||c.classList.contains('tabbar')) return; c.animate([{opacity:0,translate:(dir*32)+'px 0'},{opacity:1,translate:'0 0'}],{duration:D,easing:E}) });
   [...pel.children].forEach(c=>{ if(c.classList.contains('tabbar')) return; c.animate([{opacity:1,translate:'0 0'},{opacity:0,translate:(-dir*24)+'px 0'}],{duration:200,easing:'ease-in',fill:'forwards'}) });
-  const np=nel.querySelector('.tabpill'); if(np&&ox!=null){ const dx=(ox-np.getBoundingClientRect().left)/sc; np.animate([{translate:dx+'px 0'},{translate:'0 0'}],{duration:250,easing:'cubic-bezier(.34,1.56,.64,1)'}) }
+  const np=nel.querySelector('.tabpill'); if(np&&ox!=null){ const dx=(ox-np.getBoundingClientRect().left)/sc; np.animate([{translate:dx+'px 0'},{translate:'0 0'}],{duration:320,easing:'cubic-bezier(.55,1.5,.6,1)'}) }
   setTimeout(()=>pel.remove(),270);
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1967,7 +1967,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('stage').addEventListener('click',e=>{
     const g=e.target.closest('[data-go]'); if(g){ R.show(g.dataset.go); return }
     const a=e.target.closest('[data-act]'); if(a){ if(a.dataset.act==='back'||a.dataset.act==='close') R.back(); return }
-    const tb=e.target.closest('.tab'); if(tb){ if(Date.now()-(window._tabT||0)<320) return; window._tabT=Date.now(); const i=+tb.dataset.tab, cur=R.stack[R.stack.length-1].id;
+    const tb=e.target.closest('.tab'); if(tb){ if(Date.now()-(window._tabT||0)<340) return; window._tabT=Date.now(); const i=+tb.dataset.tab, cur=R.stack[R.stack.length-1].id;
       if(!S.authed&&i!==3){ if(i===0){ if(cur!=='home'){ TAB_ID.includes(cur)?tabSwitch('home'):(R.show('home',{dir:'none'}),R.stack.splice(0,R.stack.length-1)) } } else if(cur!=='guest') R.show('guest'); return }
       const to=i===0?'home':i===1?'comm':i===2?'map':i===3?'chats':'my';
       if(cur===to) return;
